@@ -1,6 +1,7 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
+import { Input } from "~/components/ui/Input";
 
 import { api } from "~/utils/api";
 
@@ -14,8 +15,10 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
   if (!user) return null;
 
   return (
-    <div>
-      <img className="h-14 w-16 rounded-full" src={user.profileImageUrl}></img>
+    <div className="space-2 flex w-full items-center gap-2">
+      <img className="h-16 w-16 rounded-full" src={user.profileImageUrl}></img>
+      <Input className="flex-1" placeholder="Type a post..." />
+      {/* <input type="text" className="grow" /> */}
     </div>
   );
 };
@@ -40,14 +43,13 @@ const Home: NextPage = () => {
           <div className="flex border-b border-slate-200 p-4">
             <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
             <div>{!user.isSignedIn && <SignInButton />}</div>
-            <div>
-              {user.isSignedIn && (
-                <div>
-                  <CreatePostWizard />
-                  <SignOutButton />
-                </div>
-              )}
-            </div>
+
+            {user.isSignedIn && (
+              <div className="w-full">
+                <CreatePostWizard />
+                <SignOutButton />
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
