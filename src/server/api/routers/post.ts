@@ -1,6 +1,6 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
+import { createTRPCRouter, privateProcedure, publicProcedure } from '~/server/api/trpc';
 
 import type { User } from '@clerk/nextjs/dist/api'
 import { TRPCError } from '@trpc/server';
@@ -14,18 +14,13 @@ function filterUserForClient({ id, username, profileImageUrl }: User) {
 }
 
 export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
   getAll: publicProcedure.query(async ({ ctx }) => {
     const limit = 100
     const posts = await ctx.prisma.post.findMany({
       take: limit,
+      orderBy: [{
+        updatedAt: "desc"
+      }]
     });
 
     const users = (await clerkClient.users.getUserList({
@@ -47,4 +42,20 @@ export const postRouter = createTRPCRouter({
       }
     });
   }),
+
+  create: privateProcedure
+    .input(z.object({
+      content: z.string().min(1).max(255)
+    })).mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId
+
+      const post = await ctx.prisma.post.create({
+        data: {
+          authorId,
+          content: input.content
+        }
+      })
+
+      return post
+    })
 });

@@ -1,6 +1,7 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
+import { useState } from "react";
 import TimeAgo from "react-timeago";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
@@ -12,9 +13,20 @@ type CreatePostWizardProps = {
 };
 
 const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
+  const [content, setContent] = useState("");
+
   const { user } = useUser();
+  const { mutate: createPost } = api.post.create.useMutation();
 
   if (!user) return null;
+
+  function handleCreatePost(event: React.FormEvent) {
+    event.preventDefault();
+
+    createPost({
+      content,
+    });
+  }
 
   return (
     <div className="space-2 flex w-full items-center gap-2">
@@ -22,7 +34,17 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
         <AvatarImage src={user.profileImageUrl} />
         <AvatarFallback>DS</AvatarFallback>
       </Avatar>
-      <Input className="flex-1" placeholder="Type a post..." />
+      <form
+        action="submit"
+        onSubmit={(event) => handleCreatePost(event)}
+        className="flex-1"
+      >
+        <Input
+          placeholder="Type a post..."
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+        />
+      </form>
     </div>
   );
 };
@@ -50,7 +72,7 @@ const PostView: React.FC<PostViewProps> = ({
             <TimeAgo date={post.updatedAt} />
           </span>
         </span>
-        <span>{post.content}</span>
+        <span className="text-xl">{post.content}</span>
       </div>
     </div>
   );
@@ -69,7 +91,7 @@ const Feed: React.FC<FeedProps> = () => {
 
   return (
     <div className="space-y-4">
-      {posts?.map((post) => (
+      {posts.map((post) => (
         <PostView key={post.post.id} postWithAuthor={post} />
       ))}
     </div>
