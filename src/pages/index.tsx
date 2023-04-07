@@ -1,10 +1,10 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
+import TimeAgo from "react-timeago";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
-
-import { type RouterOutputs, api } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 type CreatePostWizardProps = {
   id?: string;
@@ -44,7 +44,10 @@ const PostView: React.FC<PostViewProps> = ({
       )}
       <div className="flex flex-col">
         <span className="text-xs text-slate-400">
-          {`@${author.username}`} ·
+          {`@${author.username} · `}
+          <span className="font-thin">
+            <TimeAgo date={post.updatedAt} />
+          </span>
         </span>
         <span>{post.content}</span>
       </div>
