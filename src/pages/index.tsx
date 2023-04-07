@@ -16,7 +16,15 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
   const [content, setContent] = useState("");
 
   const { user } = useUser();
-  const { mutate: createPost } = api.post.create.useMutation();
+  const context = api.useContext();
+
+  const { mutate: createPost, isLoading: isPosting } =
+    api.post.create.useMutation({
+      onSuccess: () => {
+        setContent("");
+        void context.post.getAll.invalidate();
+      },
+    });
 
   if (!user) return null;
 
@@ -41,6 +49,7 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
       >
         <Input
           placeholder="Type a post..."
+          disabled={isPosting}
           value={content}
           onChange={(event) => setContent(event.target.value)}
         />
