@@ -9,7 +9,9 @@ import { api } from "~/utils/api";
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ClerkProvider appearance={{ baseTheme: dark }} {...pageProps}>
-      <Component {...pageProps} />
+      <div className="h-screen w-screen bg-gray-800">
+        <Component {...pageProps} />
+      </div>
     </ClerkProvider>
   );
 };

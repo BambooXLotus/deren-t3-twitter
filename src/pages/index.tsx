@@ -4,6 +4,7 @@ import Head from "next/head";
 import TimeAgo from "react-timeago";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
+import { LoadingContainer } from "~/components/ui/Loading";
 import { api, type RouterOutputs } from "~/utils/api";
 
 type CreatePostWizardProps = {
@@ -55,13 +56,31 @@ const PostView: React.FC<PostViewProps> = ({
   );
 };
 
-const Home: NextPage = () => {
-  const user = useUser();
+type FeedProps = {
+  id?: string;
+};
+
+const Feed: React.FC<FeedProps> = () => {
   const { data: posts, isLoading } = api.post.getAll.useQuery();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingContainer />;
 
   if (!posts) return <div>Something wong</div>;
+
+  return (
+    <div className="space-y-4">
+      {posts?.map((post) => (
+        <PostView key={post.post.id} postWithAuthor={post} />
+      ))}
+    </div>
+  );
+};
+
+const Home: NextPage = () => {
+  const { isSignedIn } = useUser();
+
+  //Start Fetching Early
+  api.post.getAll.useQuery();
 
   return (
     <>
@@ -74,21 +93,16 @@ const Home: NextPage = () => {
         <div className="w-full border-x border-slate-200 md:max-w-3xl">
           <div className="flex border-b border-slate-200 p-4">
             <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
-            <div>{!user.isSignedIn && <SignInButton />}</div>
+            <div>{!isSignedIn && <SignInButton />}</div>
 
-            {user.isSignedIn && (
+            {isSignedIn && (
               <div className="w-full">
                 <CreatePostWizard />
                 <SignOutButton />
               </div>
             )}
           </div>
-
-          <div className="space-y-4">
-            {posts?.map((post) => (
-              <PostView key={post.post.id} postWithAuthor={post} />
-            ))}
-          </div>
+          <Feed />
         </div>
       </main>
     </>
