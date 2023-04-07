@@ -2,6 +2,7 @@ import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import TimeAgo from "react-timeago";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
@@ -23,6 +24,15 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
       onSuccess: () => {
         setContent("");
         void context.post.getAll.invalidate();
+      },
+      onError: (error) => {
+        //TODO: move this stuff to a helper
+        const errorMessage = error.data?.zodError?.fieldErrors.content;
+
+        console.log(errorMessage);
+        if (errorMessage && errorMessage[0]) {
+          toast.error(errorMessage[0]);
+        }
       },
     });
 

@@ -25,6 +25,7 @@
     "next": "^13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.0",
     "react-timeago": "^7.1.0",
     "superjson": "1.12.2",
     "tailwind-merge": "^1.12.0",
