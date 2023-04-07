@@ -1,4 +1,4 @@
-# Deren Photo Album ShowCase
+# Deren Twitter
 
 ## Stack
 
