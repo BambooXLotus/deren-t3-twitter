@@ -29,7 +29,6 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
         //TODO: move this stuff to a helper
         const errorMessage = error.data?.zodError?.fieldErrors.content;
 
-        console.log(errorMessage);
         if (errorMessage && errorMessage[0]) {
           toast.error(errorMessage[0]);
         }
@@ -57,12 +56,16 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
         onSubmit={(event) => handleCreatePost(event)}
         className="flex-1"
       >
-        <Input
-          placeholder="Type a post..."
-          disabled={isPosting}
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-        />
+        {isPosting ? (
+          true && <LoadingContainer size={30} />
+        ) : (
+          <Input
+            placeholder="Type a post..."
+            disabled={isPosting}
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+          />
+        )}
       </form>
     </div>
   );
