@@ -1,11 +1,21 @@
-import { type NextPage } from "next";
-import Head from "next/head";
+import { createServerSideHelpers } from "@trpc/react-query/server";
+import {
+  type GetStaticProps,
+  type InferGetStaticPropsType,
+  type NextPage,
+} from "next";
+import superjson from "superjson";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { LoadingContainer } from "~/components/ui/Loading";
+import PageLayout from "~/components/ui/PageLayout";
+import { appRouter } from "~/server/api/root";
+import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
 
-const ProfilePage: NextPage = () => {
+type ProfilePageProps = InferGetStaticPropsType<typeof getStaticProps>;
+const ProfilePage: NextPage<ProfilePageProps> = ({ username }) => {
   const { data: profile, isLoading } = api.profile.getUserByUsername.useQuery({
-    username: "bambooderen",
+    username,
   });
 
   if (isLoading) return <LoadingContainer />;
@@ -13,17 +23,57 @@ const ProfilePage: NextPage = () => {
   if (!profile) return <div>404</div>;
 
   return (
-    <>
-      <Head>
-        <title>Deren T3 Twitter - Profile</title>
-      </Head>
-      <main className="flex min-h-screen justify-center bg-gray-800 text-white">
-        <div className="w-full border-x border-slate-200 md:max-w-3xl">
-          <div className="flex border-b border-slate-200 p-4">Profile View</div>
-        </div>
-      </main>
-    </>
+    <PageLayout>
+      <div className="relative h-48 bg-slate-600">
+        <Avatar className="absolute bottom-0 left-0 -mb-16 ml-4 h-32 w-32 border-4 border-gray-800">
+          <AvatarImage src={profile.profileImageUrl} />
+          <AvatarFallback>DS</AvatarFallback>
+        </Avatar>
+      </div>
+      <div className="h-16"></div>
+      <div className="p-4 text-2xl font-bold">{`@${
+        profile.username ?? "none"
+      }`}</div>
+      <div className="border-b border-slate-200"></div>
+    </PageLayout>
   );
 };
 
 export default ProfilePage;
+
+type profilePageStaticProps = {
+  username: string;
+};
+
+export const getStaticProps: GetStaticProps<profilePageStaticProps> = async (
+  context
+) => {
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: {
+      prisma,
+      userId: null,
+    },
+    transformer: superjson, // optional - adds superjson serialization
+  });
+
+  const slug = context.params?.slug;
+
+  if (typeof slug !== "string") throw new Error("no slug");
+
+  await helpers.profile.getUserByUsername.prefetch({ username: slug });
+
+  return {
+    props: {
+      trpcState: helpers.dehydrate(),
+      username: slug,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+};
