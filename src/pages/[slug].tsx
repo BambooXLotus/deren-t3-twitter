@@ -7,10 +7,33 @@ import {
 import superjson from "superjson";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { LoadingContainer } from "~/components/ui/Loading";
-import PageLayout from "~/components/ui/PageLayout";
+import PageLayout from "~/components/PageLayout";
 import { appRouter } from "~/server/api/root";
 import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
+import { PostView } from "~/components/PostView";
+
+type FeedProps = {
+  userId: string;
+};
+
+const Feed: React.FC<FeedProps> = ({ userId }) => {
+  const { data: posts, isLoading } = api.post.getPostsByUserId.useQuery({
+    userId,
+  });
+
+  if (isLoading) return <LoadingContainer />;
+
+  if (!posts) return <div>Something wong</div>;
+
+  return (
+    <div className="space-y-4">
+      {posts.map((post) => (
+        <PostView key={post.post.id} postWithAuthor={post} />
+      ))}
+    </div>
+  );
+};
 
 type ProfilePageProps = InferGetStaticPropsType<typeof getStaticProps>;
 const ProfilePage: NextPage<ProfilePageProps> = ({ username }) => {
@@ -35,6 +58,7 @@ const ProfilePage: NextPage<ProfilePageProps> = ({ username }) => {
         profile.username ?? "none"
       }`}</div>
       <div className="border-b border-slate-200"></div>
+      <Feed userId={profile.id} />
     </PageLayout>
   );
 };

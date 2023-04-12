@@ -7,6 +7,7 @@ import { TRPCError } from '@trpc/server';
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { filterUserForClient } from '~/utils/helpers';
+import { type Post } from '@prisma/client';
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -15,9 +16,51 @@ const ratelimit = new Ratelimit({
   analytics: true
 });
 
+const limit = 100
+
+async function addUserDataToPosts(posts: Post[]) {
+  const userIds = posts.map(post => post.authorId)
+
+  const users = (await clerkClient.users.getUserList({
+    userId: userIds,
+    limit
+  })).map(filterUserForClient)
+
+  return posts.map((post) => {
+
+    const author = users.find((user) => user.id === post.authorId);
+
+    if (!author) {
+      console.error("AUTHOR NOT FOUND", post);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Author for post not found. POST ID: ${post.id}, USER ID: ${post.authorId}`,
+      });
+    }
+
+    // if (!author.username) {
+    //   // user the ExternalUsername
+    //   if (!author.externalUsername) {
+    //     throw new TRPCError({
+    //       code: "INTERNAL_SERVER_ERROR",
+    //       message: `Author has no GitHub Account: ${author.id}`,
+    //     });
+    //   }
+    //   author.username = author.externalUsername;
+    // }
+
+    return {
+      post,
+      author: {
+        ...author,
+        username: author.username ?? "(username not found)",
+      },
+    };
+  });
+}
+
 export const postRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
-    const limit = 100
     const posts = await ctx.prisma.post.findMany({
       take: limit,
       orderBy: [{
@@ -25,30 +68,25 @@ export const postRouter = createTRPCRouter({
       }]
     });
 
-    const users = (await clerkClient.users.getUserList({
-      userId: posts.map((post) => post.authorId),
-      limit
-    })).map(filterUserForClient)
-
-    console.log('user? ', users)
-
-
-    return posts.map((post) => {
-      const author = users.find(user => user.id === post.authorId)
-
-      if (!author) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Author for post not found!" })
-
-      const username = author.username ?? 'none'
-
-      return {
-        post,
-        author: {
-          ...author,
-          username: username
-        }
-      }
-    });
+    return addUserDataToPosts(posts)
   }),
+
+  getPostsByUserId: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      })
+    )
+    .query(({ ctx, input }) =>
+      ctx.prisma.post
+        .findMany({
+          where: {
+            authorId: input.userId,
+          },
+          take: 100,
+          orderBy: [{ createdAt: "desc" }],
+        }).then(addUserDataToPosts)
+    ),
 
   create: privateProcedure
     .input(z.object({

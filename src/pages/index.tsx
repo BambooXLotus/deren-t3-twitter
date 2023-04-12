@@ -8,8 +8,9 @@ import TimeAgo from "react-timeago";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
 import { LoadingContainer } from "~/components/ui/Loading";
-import PageLayout from "~/components/ui/PageLayout";
+import PageLayout from "~/components/PageLayout";
 import { api, type RouterOutputs } from "~/utils/api";
+import { PostView } from "~/components/PostView";
 
 type CreatePostWizardProps = {
   id?: string;
@@ -69,38 +70,6 @@ const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
           />
         )}
       </form>
-    </div>
-  );
-};
-
-type PostWithAuthor = RouterOutputs["post"]["getAll"][number];
-type PostViewProps = {
-  postWithAuthor: PostWithAuthor;
-};
-
-const PostView: React.FC<PostViewProps> = ({
-  postWithAuthor: { post, author },
-}) => {
-  return (
-    <div className="flex gap-2 border-b border-slate-200 p-3 ">
-      {author && (
-        <Avatar>
-          <AvatarImage src={author.profileImageUrl} />
-          <AvatarFallback>DS</AvatarFallback>
-        </Avatar>
-      )}
-      <div className="flex flex-col">
-        <span className="text-xs font-thin">
-          <Link href={`/${author.username}`}>
-            <span className="text-sm text-slate-400">{`@${author.username}`}</span>
-          </Link>
-          {` · `}
-          <Link href={`/post/${post.id}`}>
-            <TimeAgo date={post.updatedAt} />
-          </Link>
-        </span>
-        <span className="text-xl">{post.content}</span>
-      </div>
     </div>
   );
 };
