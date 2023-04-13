@@ -1,9 +1,9 @@
-import { type RouterOutputs } from "~/utils/api";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
 import Link from "next/link";
 import ReactTimeago from "react-timeago";
+import { type PostWithAuthor } from "~/types/types";
 
-type PostWithAuthor = RouterOutputs["post"]["getAll"][number];
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
+
 type PostViewProps = {
   postWithAuthor: PostWithAuthor;
 };

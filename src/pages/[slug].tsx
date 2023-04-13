@@ -5,19 +5,19 @@ import {
   type NextPage,
 } from "next";
 import superjson from "superjson";
+import { PageLayout } from "~/components/PageLayout";
+import { PostFeed } from "~/components/PostFeed";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { LoadingContainer } from "~/components/ui/Loading";
-import PageLayout from "~/components/PageLayout";
 import { appRouter } from "~/server/api/root";
 import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
-import { PostView } from "~/components/PostView";
 
 type FeedProps = {
   userId: string;
 };
 
-const Feed: React.FC<FeedProps> = ({ userId }) => {
+const ProfileFeedWrapper: React.FC<FeedProps> = ({ userId }) => {
   const { data: posts, isLoading } = api.post.getPostsByUserId.useQuery({
     userId,
   });
@@ -26,13 +26,7 @@ const Feed: React.FC<FeedProps> = ({ userId }) => {
 
   if (!posts) return <div>Something wong</div>;
 
-  return (
-    <div className="space-y-4">
-      {posts.map((post) => (
-        <PostView key={post.post.id} postWithAuthor={post} />
-      ))}
-    </div>
-  );
+  return <PostFeed posts={posts} />;
 };
 
 type ProfilePageProps = InferGetStaticPropsType<typeof getStaticProps>;
@@ -58,7 +52,7 @@ const ProfilePage: NextPage<ProfilePageProps> = ({ username }) => {
         profile.username ?? "none"
       }`}</div>
       <div className="border-b border-slate-200"></div>
-      <Feed userId={profile.id} />
+      <ProfileFeedWrapper userId={profile.id} />
     </PageLayout>
   );
 };
@@ -78,7 +72,7 @@ export const getStaticProps: GetStaticProps<profilePageStaticProps> = async (
       prisma,
       userId: null,
     },
-    transformer: superjson, // optional - adds superjson serialization
+    transformer: superjson,
   });
 
   const slug = context.params?.slug;

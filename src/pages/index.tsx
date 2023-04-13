@@ -1,97 +1,20 @@
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { useState } from "react";
-import { toast } from "react-hot-toast";
-import TimeAgo from "react-timeago";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
-import { Input } from "~/components/ui/Input";
+import { PageLayout } from "~/components/PageLayout";
+import { PostFeed } from "~/components/PostFeed";
+import { PostInput } from "~/components/PostInput";
 import { LoadingContainer } from "~/components/ui/Loading";
-import PageLayout from "~/components/PageLayout";
-import { api, type RouterOutputs } from "~/utils/api";
-import { PostView } from "~/components/PostView";
+import { api } from "~/utils/api";
 
-type CreatePostWizardProps = {
-  id?: string;
-};
-
-const CreatePostWizard: React.FC<CreatePostWizardProps> = () => {
-  const [content, setContent] = useState("");
-
-  const { user } = useUser();
-  const context = api.useContext();
-
-  const { mutate: createPost, isLoading: isPosting } =
-    api.post.create.useMutation({
-      onSuccess: () => {
-        setContent("");
-        void context.post.getAll.invalidate();
-      },
-      onError: (error) => {
-        //TODO: move this stuff to a helper
-        const errorMessage = error.data?.zodError?.fieldErrors.content;
-
-        if (errorMessage && errorMessage[0]) {
-          toast.error(errorMessage[0]);
-        }
-      },
-    });
-
-  if (!user) return null;
-
-  function handleCreatePost(event: React.FormEvent) {
-    event.preventDefault();
-
-    createPost({
-      content,
-    });
-  }
-
-  return (
-    <div className="space-2 flex w-full items-center gap-2">
-      <Avatar>
-        <AvatarImage src={user.profileImageUrl} />
-        <AvatarFallback>DS</AvatarFallback>
-      </Avatar>
-      <form
-        action="submit"
-        onSubmit={(event) => handleCreatePost(event)}
-        className="flex-1"
-      >
-        {isPosting ? (
-          true && <LoadingContainer size={30} />
-        ) : (
-          <Input
-            placeholder="Type a post..."
-            disabled={isPosting}
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-          />
-        )}
-      </form>
-    </div>
-  );
-};
-
-type FeedProps = {
-  id?: string;
-};
-
-const Feed: React.FC<FeedProps> = () => {
+const MainFeedWrapper: React.FC = () => {
   const { data: posts, isLoading } = api.post.getAll.useQuery();
 
   if (isLoading) return <LoadingContainer />;
 
   if (!posts) return <div>Something wong</div>;
 
-  return (
-    <div className="space-y-4">
-      {posts.map((post) => (
-        <PostView key={post.post.id} postWithAuthor={post} />
-      ))}
-    </div>
-  );
+  return <PostFeed posts={posts} />;
 };
 
 const Home: NextPage = () => {
@@ -114,12 +37,12 @@ const Home: NextPage = () => {
 
           {isSignedIn && (
             <div className="w-full">
-              <CreatePostWizard />
+              <PostInput />
               <SignOutButton />
             </div>
           )}
         </div>
-        <Feed />
+        <MainFeedWrapper />
       </PageLayout>
     </>
   );
