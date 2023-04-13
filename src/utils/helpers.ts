@@ -7,10 +7,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function filterUserForClient({ id, username, profileImageUrl }: User) {
+export function filterUserForClient(user: User) {
   return {
-    id,
-    username,
-    profileImageUrl
+    id: user.id,
+    username: user.username,
+    profileImageUrl: user.profileImageUrl,
+    externalUsername: user.externalAccounts[0]?.emailAddress || null
   }
 }
