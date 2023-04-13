@@ -1,23 +1,20 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
 import {
   type GetStaticProps,
   type InferGetStaticPropsType,
   type NextPage,
 } from "next";
-import superjson from "superjson";
 import { PageLayout } from "~/components/PageLayout";
 import { PostFeed } from "~/components/PostFeed";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { LoadingContainer } from "~/components/ui/Loading";
-import { appRouter } from "~/server/api/root";
-import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
+import { createSSGHelper } from "~/utils/ssgHelper";
 
-type FeedProps = {
+type ProfileFeedWrapperProps = {
   userId: string;
 };
 
-const ProfileFeedWrapper: React.FC<FeedProps> = ({ userId }) => {
+const ProfileFeedWrapper: React.FC<ProfileFeedWrapperProps> = ({ userId }) => {
   const { data: posts, isLoading } = api.post.getPostsByUserId.useQuery({
     userId,
   });
@@ -66,14 +63,7 @@ type profilePageStaticProps = {
 export const getStaticProps: GetStaticProps<profilePageStaticProps> = async (
   context
 ) => {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: {
-      prisma,
-      userId: null,
-    },
-    transformer: superjson,
-  });
+  const helpers = createSSGHelper();
 
   const slug = context.params?.slug;
 

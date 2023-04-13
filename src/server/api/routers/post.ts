@@ -60,6 +60,20 @@ async function addUserDataToPosts(posts: Post[]) {
 }
 
 export const postRouter = createTRPCRouter({
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const post = await ctx.prisma.post
+        .findUnique({
+          where: {
+            id: input.id
+          }
+        })
+
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return (await addUserDataToPosts([post]))[0];
+    }),
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.prisma.post.findMany({
       take: limit,
@@ -72,11 +86,7 @@ export const postRouter = createTRPCRouter({
   }),
 
   getPostsByUserId: publicProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
+    .input(z.object({ userId: z.string(), }))
     .query(({ ctx, input }) =>
       ctx.prisma.post
         .findMany({
