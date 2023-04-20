@@ -1,4 +1,4 @@
-import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignIn, SignInButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { PageLayout } from "~/components/PageLayout";
@@ -35,12 +35,7 @@ const Home: NextPage = () => {
           <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
           <div>{!isSignedIn && <SignInButton />}</div>
 
-          {isSignedIn && (
-            <div className="w-full">
-              <PostInput />
-              <SignOutButton />
-            </div>
-          )}
+          {isSignedIn && <PostInput />}
         </div>
         <MainFeedWrapper />
       </PageLayout>

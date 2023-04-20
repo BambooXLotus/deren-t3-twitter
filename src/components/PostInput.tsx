@@ -1,7 +1,6 @@
-import { useUser } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 import { Input } from "~/components/ui/Input";
 import { LoadingContainer } from "~/components/ui/Loading";
 import { api } from "~/utils/api";
@@ -40,10 +39,7 @@ export const PostInput: React.FC = () => {
 
   return (
     <div className="space-2 flex w-full items-center gap-2">
-      <Avatar>
-        <AvatarImage src={user.profileImageUrl} />
-        <AvatarFallback>DS</AvatarFallback>
-      </Avatar>
+      <UserButton />
       <form
         action="submit"
         onSubmit={(event) => handleCreatePost(event)}
